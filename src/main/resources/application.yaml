@@ -13,3 +13,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+jwt:
+  secret: childcare_super_secret_key_minimum_32_chars
+  expiration: 86400000
