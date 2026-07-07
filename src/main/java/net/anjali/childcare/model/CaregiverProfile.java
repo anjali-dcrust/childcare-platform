@@ -31,15 +31,20 @@ public class CaregiverProfile {
 
     private String specializations;     // e.g. "infants,toddlers"
 
+    // ✅ Fix
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isVerified = false;
+
+    @Builder.Default
+    @Column(precision = 3, scale = 2)
+    private BigDecimal averageRating = BigDecimal.ZERO;
 
     private String docUrl;
 
     private String city;
 
-    @Column(precision = 3, scale = 2)
-    private BigDecimal averageRating = BigDecimal.ZERO;
+
 
     // Relationships
     @OneToMany(mappedBy = "caregiver", cascade = CascadeType.ALL)
