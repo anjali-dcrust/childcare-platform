@@ -1,0 +1,19 @@
+package net.anjali.childcare.dto.response;
+
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter @Setter
+@Builder
+public class ReviewResponse {
+
+    private Long id;
+    private String parentName;
+    private String caregiverName;
+    private Integer rating;
+    private String comment;
+    private LocalDateTime createdAt;
+}
