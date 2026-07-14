@@ -13,6 +13,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: childcare-service
 jwt:
   secret: childcare_super_secret_key_minimum_32_chars
   expiration: 86400000

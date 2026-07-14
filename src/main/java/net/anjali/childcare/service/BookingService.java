@@ -4,6 +4,8 @@ import net.anjali.childcare.dto.request.BookingRequest;
 import net.anjali.childcare.dto.response.BookingResponse;
 import net.anjali.childcare.enums.BookingStatus;
 import net.anjali.childcare.exception.ResourceNotfoundException;
+import net.anjali.childcare.kafka.event.BookingEvent;
+import net.anjali.childcare.kafka.producer.BookingEventProducer;
 import net.anjali.childcare.model.AvailabilitySlot;
 import net.anjali.childcare.model.Booking;
 import net.anjali.childcare.model.CaregiverProfile;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
+    @Autowired
+    private BookingEventProducer bookingEventProducer;
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -90,6 +94,15 @@ public class BookingService {
         // Lock the slot
         slot.setIsBooked(true);
         availabilitySlotRepository.save(slot);
+        bookingEventProducer.publishBookingEvent(BookingEvent.builder()
+                .bookingId(booking.getId())
+                .parentEmail(parent.getEmail())
+                .parentName(parent.getName())
+                .caregiverEmail(caregiver.getUser().getEmail())
+                .caregiverName(caregiver.getUser().getName())
+                .status(BookingStatus.PENDING)
+                .message("New booking request created")
+                .build());
 
         return mapToResponse(booking);
     }
@@ -129,6 +142,15 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CONFIRMED);
         bookingRepository.save(booking);
+        bookingEventProducer.publishBookingEvent(BookingEvent.builder()
+                .bookingId(booking.getId())
+                .parentEmail(booking.getParent().getEmail())
+                .parentName(booking.getParent().getName())
+                .caregiverEmail(booking.getCaregiver().getUser().getEmail())
+                .caregiverName(booking.getCaregiver().getUser().getName())
+                .status(BookingStatus.CONFIRMED)
+                .message("Booking confirmed by caregiver")
+                .build());
         return mapToResponse(booking);
     }
 
@@ -156,6 +178,15 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
+        bookingEventProducer.publishBookingEvent(BookingEvent.builder()
+                .bookingId(booking.getId())
+                .parentEmail(booking.getParent().getEmail())
+                .parentName(booking.getParent().getName())
+                .caregiverEmail(booking.getCaregiver().getUser().getEmail())
+                .caregiverName(booking.getCaregiver().getUser().getName())
+                .status(BookingStatus.CANCELLED)
+                .message("Booking has been cancelled")
+                .build());
         return mapToResponse(booking);
     }
 
@@ -169,6 +200,15 @@ public class BookingService {
 
         booking.setStatus(BookingStatus.COMPLETED);
         bookingRepository.save(booking);
+        bookingEventProducer.publishBookingEvent(BookingEvent.builder()
+                .bookingId(booking.getId())
+                .parentEmail(booking.getParent().getEmail())
+                .parentName(booking.getParent().getName())
+                .caregiverEmail(booking.getCaregiver().getUser().getEmail())
+                .caregiverName(booking.getCaregiver().getUser().getName())
+                .status(BookingStatus.COMPLETED)
+                .message("Booking marked as completed")
+                .build());
         return mapToResponse(booking);
     }
 

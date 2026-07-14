@@ -10,6 +10,11 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: childcare-service
+
 jwt:
   secret: your_secret_key
   expiration: 86400000
