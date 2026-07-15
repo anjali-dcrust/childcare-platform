@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public routes — no token needed
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/ws-chat/**").permitAll()
                         // Admin only routes
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Everything else needs a valid JWT
