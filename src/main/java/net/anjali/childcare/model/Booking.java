@@ -3,6 +3,7 @@ package net.anjali.childcare.model;
 import jakarta.persistence.*;
 import lombok.*;
 import net.anjali.childcare.enums.BookingStatus;
+import net.anjali.childcare.enums.SessionStatus;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
@@ -49,4 +50,8 @@ public class Booking {
     // Relationship
     @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL)
     private Review review;
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SessionStatus sessionStatus = SessionStatus.NOT_STARTED;
 }

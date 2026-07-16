@@ -2,7 +2,9 @@ package net.anjali.childcare.service;
 
 import net.anjali.childcare.dto.request.BookingRequest;
 import net.anjali.childcare.dto.response.BookingResponse;
+import net.anjali.childcare.dto.response.SessionStatusResponse;
 import net.anjali.childcare.enums.BookingStatus;
+import net.anjali.childcare.enums.SessionStatus;
 import net.anjali.childcare.exception.ResourceNotfoundException;
 import net.anjali.childcare.kafka.event.BookingEvent;
 import net.anjali.childcare.kafka.producer.BookingEventProducer;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
+    @Autowired
+    private org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
     @Autowired
     private BookingEventProducer bookingEventProducer;
 
@@ -241,5 +245,52 @@ public class BookingService {
                 .notes(booking.getNotes())
                 .createdAt(booking.getCreatedAt())
                 .build();
+    }
+    // Caregiver updates session status during active booking
+    public SessionStatusResponse updateSessionStatus(String email, Long bookingId, SessionStatus newStatus) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotfoundException("Booking not found"));
+
+        // Only the assigned caregiver can update session status
+        if (!booking.getCaregiver().getUser().getEmail().equals(email)) {
+            throw new RuntimeException("Unauthorized to update this session");
+        }
+
+        // Booking must be confirmed before session can start
+        if (!booking.getStatus().equals(BookingStatus.CONFIRMED)) {
+            throw new RuntimeException("Booking must be confirmed before updating session status");
+        }
+
+        // Enforce valid status progression
+        validateStatusTransition(booking.getSessionStatus(), newStatus);
+
+        booking.setSessionStatus(newStatus);
+        bookingRepository.save(booking);
+
+        // Push live update to parent via WebSocket (reuses your chat infra)
+        SessionStatusResponse response = SessionStatusResponse.builder()
+                .bookingId(booking.getId())
+                .sessionStatus(booking.getSessionStatus())
+                .updatedAt(java.time.LocalDateTime.now())
+                .build();
+
+        messagingTemplate.convertAndSend("/topic/session/" + booking.getId(), response);
+
+        return response;
+    }
+
+    // Prevent skipping steps or going backwards
+    private void validateStatusTransition(SessionStatus current, SessionStatus next) {
+        java.util.Map<SessionStatus, SessionStatus> allowedNext = java.util.Map.of(
+                SessionStatus.NOT_STARTED, SessionStatus.ARRIVED,
+                SessionStatus.ARRIVED, SessionStatus.IN_PROGRESS,
+                SessionStatus.IN_PROGRESS, SessionStatus.ENDED
+        );
+
+        if (!next.equals(allowedNext.get(current))) {
+            throw new RuntimeException(
+                    "Invalid status transition from " + current + " to " + next);
+        }
     }
 }

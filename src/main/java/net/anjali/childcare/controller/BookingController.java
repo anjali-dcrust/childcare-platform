@@ -6,6 +6,8 @@ import jakarta.validation.Valid;
 
 import net.anjali.childcare.dto.request.BookingRequest;
 import net.anjali.childcare.dto.response.BookingResponse;
+import net.anjali.childcare.dto.response.SessionStatusResponse;
+import net.anjali.childcare.enums.SessionStatus;
 import net.anjali.childcare.service.BookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -71,5 +73,14 @@ public class BookingController {
             Principal principal) {
         return ResponseEntity.ok(
                 bookingService.completeBooking(principal.getName(), id));
+    }
+    // Caregiver updates live session status
+    @PutMapping("/{id}/session-status")
+    public ResponseEntity<SessionStatusResponse> updateSessionStatus(
+            @PathVariable Long id,
+            @RequestParam SessionStatus status,
+            Principal principal) {
+        return ResponseEntity.ok(
+                bookingService.updateSessionStatus(principal.getName(), id, status));
     }
 }
