@@ -17,6 +17,17 @@ spring:
     bootstrap-servers: localhost:9092
     consumer:
       group-id: childcare-service
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: anjalisaini172005@gmail.com
+    password: rinx weqz zvbq kmzf
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 jwt:
   secret: childcare_super_secret_key_minimum_32_chars
   expiration: 86400000
