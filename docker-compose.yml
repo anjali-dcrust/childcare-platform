@@ -1,7 +1,15 @@
 version: '3.8'
 
 services:
-
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: childcare-jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC receiver
+      - "4318:4318"     # OTLP HTTP receiver
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
   postgres:
     image: postgres:15
     container_name: childcare-postgres
